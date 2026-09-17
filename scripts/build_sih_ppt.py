@@ -100,7 +100,7 @@ def slide1(prs):
         ("PS Category", "Software"),
         ("Theme", "[Fill from SIH portal]"),
         ("Team ID", "[Fill from SIH portal]"),
-        ("Team Name", "[Registered team name]"),
+        ("Team Name", "prajjwaldubey"),
     ]
     y = Inches(2.7)
     for label, val in rows:

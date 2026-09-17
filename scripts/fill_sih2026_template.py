@@ -9,7 +9,7 @@ from pptx.util import Pt
 
 SRC = Path(r"C:\Users\prajj\Downloads\SIH2026-IDEA-Presentation-Format.pptx")
 DST = Path(r"C:\Users\prajj\Documents\proto.SIH\MailTrace_SIH26106_official.pptx")
-TEAM = "MailTrace"  # replace with portal team name if different
+TEAM = "prajjwaldubey"
 
 
 def set_runs_text(paragraph, text: str) -> None:
@@ -80,7 +80,7 @@ def main() -> None:
             "Theme – [Fill from SIH portal]",
             "PS Category – Software",
             "Team ID – [Fill from SIH portal]",
-            "Team Name (Registered on portal) – [Fill registered name]",
+            "Team Name (Registered on portal) – prajjwaldubey",
         ],
     )
 

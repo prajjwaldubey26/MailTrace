@@ -3,112 +3,263 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MailTrace · SIH26106</title>
+  <title>MailTrace · SIH26106 forensic console</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/style.css?v=9" />
+  <link rel="stylesheet" href="/static/style.css?v=14" />
 </head>
 <body>
+  <div class="site-bg" aria-hidden="true">
+    <video id="siteBgVideo" autoplay muted loop playsinline poster="/static/media/pin-bg.jpg">
+      <source src="/static/media/pin-bg.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <section id="landing" class="landing">
+    <header class="land-nav">
+      <div>
+        <span class="kicker">SIH26106</span>
+        <strong>MailTrace</strong>
+      </div>
+      <div class="land-nav-actions">
+        <button type="button" class="ghost" id="landSkip">Skip to console</button>
+        <button type="button" id="landEnter">Enter SOC console</button>
+      </div>
+    </header>
+    <div class="land-main">
+      <div class="land-copy">
+        <p class="kicker">AICTE Cyber Security Cell · email threat investigation</p>
+        <h1 class="land-title">Trace the <em>path</em>.<br />Not the person.</h1>
+        <p class="land-lead">Drop an original email. MailTrace classifies five threat types, explains every risk point, maps public mail hops, and seals the artefact with SHA-256. Infrastructure attribution only.</p>
+        <div class="land-cta">
+          <button type="button" id="landLab">Trace lab invoice</button>
+          <button type="button" class="ghost" id="landSafe">See a safe college mail</button>
+        </div>
+        <p class="land-honest">Weighted heuristics — not a neural net. No Gmail login. No mailbox hacking.</p>
+      </div>
+      <aside class="land-card">
+        <div class="land-card-top">
+          <div class="donut land-donut" style="--p:92;--c:#ff5d6c"><span>92</span><small>Risk / 100</small></div>
+          <div>
+            <p class="kicker">Primary findings</p>
+            <div class="verdict danger">Fraud — payment diversion<small>Do not pay. Confirm on a known channel.</small></div>
+          </div>
+        </div>
+        <div class="auth-matrix land-auth">
+          <div class="auth-cell fail"><b>spf</b>fail</div>
+          <div class="auth-cell fail"><b>dkim</b>fail</div>
+          <div class="auth-cell fail"><b>dmarc</b>fail</div>
+        </div>
+        <p class="land-seal">SHA-256 custody · first public hop = a mail server</p>
+        <ol class="land-mini-phases">
+          <li><span>CLEAN</span> Ingest &amp; hash</li>
+          <li><span class="bad">FLAGGED</span> Authentication</li>
+          <li><span class="bad">FLAGGED</span> Identity mismatch</li>
+          <li><span class="bad">FLAGGED</span> Language / lookalike</li>
+        </ol>
+      </aside>
+    </div>
+    <div class="land-features">
+      <button type="button" class="land-feat" data-goto="explain">
+        <b>01 Detect</b>
+        <h3>Five threat classes</h3>
+        <p>Legitimate, suspicious, impersonated, phishing, fraud — from SPF/DKIM/DMARC, lookalikes, and payment language.</p>
+      </button>
+      <button type="button" class="land-feat" data-goto="timeline">
+        <b>02 Explain</b>
+        <h3>Why this score</h3>
+        <p>Feature-share bars and a seven-phase timeline. HITL band 40–65. Not SHAP, not a transformer.</p>
+      </button>
+      <button type="button" class="land-feat" data-goto="trace">
+        <b>03 Trace</b>
+        <h3>Hop map</h3>
+        <p>Public Received IPs on a world map. Red pin is the first public relay — a computer, not a house.</p>
+      </button>
+      <button type="button" class="land-feat" data-goto="intel">
+        <b>04 Investigate</b>
+        <h3>Identity · IOCs · vault</h3>
+        <p>Org-domain alignment, campaign DNA, defanged IOCs, and a local SHA-256 evidence seal.</p>
+      </button>
+    </div>
+  </section>
+
+  <div id="work" class="work hidden">
   <header class="top">
     <div>
       <div class="kicker">SIH26106 · AICTE Cyber Security Cell</div>
       <h1>MailTrace</h1>
-      <p>Detect → Explain → Trace → Investigate. Upload a raw .eml or paste Show original.</p>
-      <div class="flow">
-        <span>Detect</span><span>Explain</span><span>Trace</span><span>Investigate</span>
-      </div>
+      <p>Detect · Explain · Trace · Investigate — mail-server infrastructure, not a person.</p>
     </div>
-    <div class="badge">Servers, not a person</div>
+    <div class="top-right">
+      <button type="button" class="ghost" id="backLanding">Landing</button>
+      <nav class="modes" id="modes">
+        <button type="button" class="on" data-mode="ingest">Ingest &amp; Scanner</button>
+        <button type="button" data-mode="queue">SOC Case Queue</button>
+      </nav>
+    </div>
   </header>
 
-  <main class="grid">
-    <section class="panel">
-      <h2>Analyze email</h2>
-      <p class="hint">Download the raw .eml from Gmail (⋮ → Show original → Download) or paste headers + body.</p>
-      <div id="drop" class="drop">
-        <strong>Drop your .eml file here</strong>
-        <span>or click to browse · supports .eml, .txt</span>
-        <input id="file" type="file" accept=".eml,.txt,message/rfc822" />
-      </div>
-      <textarea id="raw" placeholder="Or paste the full original email, including From, Received, Authentication-Results…"></textarea>
-      <div class="row">
-        <button id="clearFile" class="ghost hidden" type="button">Clear file</button>
-        <button id="run" type="button">Analyze email</button>
-      </div>
-      <p class="file-name" id="fileName"></p>
+  <section class="kpis" id="kpis">
+    <div id="health" class="kpi health off">Checking backend…</div>
+    <div class="kpi"><b id="kpiN">0</b><span>Investigations</span></div>
+    <div class="kpi"><b id="kpiAvg">0</b><span>Avg risk</span></div>
+    <div class="kpi hot"><b id="kpiHigh">0</b><span>High / critical</span></div>
+    <div class="kpi"><b id="kpiCamp">0</b><span>Campaign domains</span></div>
+    <div class="kpi"><b id="kpiSeal">0</b><span>Sealed evidence</span></div>
+  </section>
 
-      <h2>Recent checks</h2>
-      <div id="cases" class="cases"></div>
-      <h2>Campaign grouping</h2>
-      <p class="hint">Same From domain across saved checks (pattern view, not a person).</p>
-      <div id="campaigns" class="cases"></div>
-    </section>
+  <section id="view-ingest">
+    <main class="grid">
+      <section class="panel">
+        <h2>Ingest artefact</h2>
+        <p class="hint">Gmail ⋮ → Show original → download .eml. Outlook: save as .eml, not .msg.</p>
+        <div id="drop" class="drop">
+          <strong>Drop RFC-822 .eml here</strong>
+          <span>or click to browse · .eml / .txt</span>
+          <input id="file" type="file" accept=".eml,.txt,message/rfc822" />
+        </div>
+        <div id="fileChip" class="chip hidden"><span id="fileChipName"></span><button type="button" id="clearFile" class="chip-x" aria-label="Clear file">×</button></div>
+        <textarea id="raw" placeholder="Or paste full original headers + body…"></textarea>
+        <div class="row">
+          <button id="run" type="button">Analyze</button>
+        </div>
+        <p class="file-name" id="fileName"></p>
 
-    <section class="panel grow">
-      <div id="status" class="status hidden"></div>
-      <div id="empty" class="empty">
-        <p class="empty-title">No email analyzed yet</p>
-        <p>Drop an .eml or paste Show original. You get a threat class, feature bars, hop map, and SHA-256 hash.</p>
-      </div>
-      <div id="result" class="hidden">
-        <div id="hitl" class="status warn hidden"></div>
-        <div id="verdict" class="verdict"></div>
-        <div class="scoreline">
-          <div>
-            <div class="subject" id="subject">—</div>
-            <div class="from" id="from">—</div>
-            <div class="intents" id="intents"></div>
-          </div>
-          <div class="meter">
-            <div id="scoreNum">0</div>
-            <div class="bar"><i id="bar"></i></div>
-            <div class="kicker">risk / 100</div>
-          </div>
+        <h2>Lab presets</h2>
+        <p class="hint">Classroom artefacts only — not live mailbox access.</p>
+        <div id="presets" class="presets"></div>
+
+        <h2>Recent cases</h2>
+        <div id="cases" class="cases"></div>
+        <h2>Campaign DNA</h2>
+        <p class="hint">Same From domain on this instance = possible coordinated infrastructure.</p>
+        <div id="campaigns" class="cases"></div>
+      </section>
+
+      <section class="panel grow">
+        <div id="status" class="status hidden"></div>
+        <div id="empty" class="empty">
+          <p class="empty-title">No case loaded</p>
+          <p>Drop an original email or run a lab preset. You get primary findings, a seven-phase forensic timeline, identity alignment, hop map, IOCs, and a SHA-256 evidence seal.</p>
         </div>
-        <div class="auth-matrix" id="authMatrix"></div>
-        <div class="auth" id="auth"></div>
-        <p class="class-line" id="classLine"></p>
-        <h3>Why this verdict (feature share)</h3>
-        <p class="hint" id="explainNote"></p>
-        <div id="contrib" class="contrib"></div>
-        <p class="map-cap" id="mapCap"></p>
-        <div id="map"></div>
-        <h3>SMTP hop timeline</h3>
-        <ol id="timeline" class="timeline"></ol>
-        <div class="split">
-          <div>
-            <h3>Why we say this</h3>
-            <ul id="reasons"></ul>
+        <div id="result" class="hidden">
+          <div id="hitl" class="status warn hidden"></div>
+
+          <section class="findings-hero">
+            <div class="hero-meter">
+              <div class="donut" id="donut"><span id="scoreNum">0</span><small>Risk / 100</small></div>
+              <div class="counts" id="findCounts"></div>
+            </div>
+            <div>
+              <p class="kicker">Primary investigation findings</p>
+              <div id="verdict" class="verdict"></div>
+              <div class="subject" id="subject">—</div>
+              <div class="from" id="from">—</div>
+              <div class="intents" id="intents"></div>
+              <div class="sev" id="sev"></div>
+            </div>
+          </section>
+
+          <div class="auth-matrix" id="authMatrix"></div>
+          <div class="guidance" id="guidance"></div>
+
+          <nav class="tabs" id="tabs">
+            <button type="button" class="on" data-tab="timeline">Forensic timeline</button>
+            <button type="button" data-tab="identity">Identity</button>
+            <button type="button" data-tab="explain">Explain</button>
+            <button type="button" data-tab="trace">Trace map</button>
+            <button type="button" data-tab="graph">Attack graph</button>
+            <button type="button" data-tab="iocs">IOC explorer</button>
+            <button type="button" data-tab="intel">Threat intel</button>
+            <button type="button" data-tab="vault">Evidence vault</button>
+            <button type="button" data-tab="play">Playbook</button>
+          </nav>
+
+          <div class="tab on" id="tab-timeline">
+            <p class="hint" id="phaseCap"></p>
+            <ol id="phases" class="phases"></ol>
+            <h3>Detailed findings</h3>
+            <div id="findList" class="find-list"></div>
           </div>
-          <div>
-            <h3>Where the mail travelled</h3>
-            <p id="attr"></p>
-            <a id="pdf" class="pdf" href="#">Download report (PDF)</a>
-            <a id="json" class="pdf ghost-link" href="#">Download JSON</a>
+
+          <div class="tab" id="tab-identity">
+            <p class="hint">Same organisational root means bounce/signing domains share a DNS tree — not that a named person sent the mail.</p>
+            <div id="identity" class="id-grid"></div>
+            <h3>Chronological mail relay chain</h3>
+            <ol id="relay" class="timeline"></ol>
           </div>
-        </div>
-        <div class="split">
-          <div>
-            <h3>Indicators (IOCs)</h3>
-            <ul id="iocs"></ul>
+
+          <div class="tab" id="tab-explain">
+            <div class="auth" id="auth"></div>
+            <p class="class-line" id="classLine"></p>
+            <h3>Risk pillars</h3>
+            <div id="pillars" class="contrib"></div>
+            <h3>Why this verdict (feature share)</h3>
+            <p class="hint" id="explainNote"></p>
+            <div id="contrib" class="contrib"></div>
             <h3>Header anomalies</h3>
             <ul id="anoms"></ul>
           </div>
-          <div>
-            <h3>Domain intelligence</h3>
-            <p id="domIntel"></p>
-            <h3>Evidence hash (local SHA-256)</h3>
-            <p id="custody" class="hash"></p>
-            <p class="hint">Hash of the exact file/paste. Not a blockchain stamp.</p>
+
+          <div class="tab" id="tab-trace">
+            <p class="map-cap" id="mapCap"></p>
+            <div id="map"></div>
+            <h3>SMTP hop timeline</h3>
+            <ol id="timeline" class="timeline"></ol>
+            <p id="attr"></p>
           </div>
+
+          <div class="tab" id="tab-graph">
+            <p class="hint" id="graphNote"></p>
+            <div id="graph" class="graph"></div>
+            <p id="graphDetail" class="hint">Click a node to inspect it.</p>
+          </div>
+
+          <div class="tab" id="tab-iocs">
+            <p class="hint">Defanged for safe sharing. Copy does not visit the URL.</p>
+            <div id="iocTable" class="ioc-table"></div>
+          </div>
+
+          <div class="tab" id="tab-intel">
+            <p class="hint" id="intelNote"></p>
+            <div class="sight-grid" id="sights"></div>
+            <h3>Incident correlation log</h3>
+            <div id="corrLog" class="corr"></div>
+          </div>
+
+          <div class="tab" id="tab-vault">
+            <h3>Sealed evidence (prototype CoC)</h3>
+            <p id="custody" class="hash"></p>
+            <p id="vaultNote" class="hint"></p>
+            <p id="domIntel"></p>
+            <a id="pdf" class="pdf" href="#">Download forensic PDF</a>
+            <a id="json" class="pdf ghost-link" href="#">Download JSON dossier</a>
+          </div>
+
+          <div class="tab" id="tab-play">
+            <h3>SOC analyst guidance</h3>
+            <ol id="playbook" class="timeline"></ol>
+            <h3>Why we scored this</h3>
+            <ul id="reasons"></ul>
+          </div>
+
+          <details class="tech">
+            <summary>Raw technical JSON (judges)</summary>
+            <pre id="nlp"></pre>
+          </details>
         </div>
-        <details class="tech">
-          <summary>Technical details (for judges)</summary>
-          <pre id="nlp"></pre>
-        </details>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
+  </section>
+
+  <section id="view-queue" class="queue hidden">
+    <div class="queue-head">
+      <h2>SOC case queue</h2>
+      <p class="hint">Every analysis on this instance. Open a row to jump into the scanner.</p>
+    </div>
+    <div id="queueTable" class="qtable"></div>
+  </section>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/static/app.js?v=8"></script>
+  <script src="/static/app.js?v=14"></script>
 </body>
 </html>

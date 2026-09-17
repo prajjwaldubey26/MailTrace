@@ -60,7 +60,7 @@ def body_text(msg: EmailMessage) -> str:
 
 
 def parse_auth_results(value: str | None) -> dict[str, str]:
-    out = {"spf": "none", "dkim": "none", "dmarc": "none"}
+    out = {"spf": "none", "dkim": "none", "dmarc": "none", "dkim_domain": "", "spf_domain": "", "header_from": ""}
     if not value:
         return out
     low = value.lower()
@@ -68,6 +68,15 @@ def parse_auth_results(value: str | None) -> dict[str, str]:
         m = re.search(rf"{proto}\s*=\s*(pass|fail|neutral|softfail|none|permerror|temperror)", low)
         if m:
             out[proto] = m.group(1)
+    m = re.search(r"header\.d\s*=\s*([^\s;]+)", low)
+    if m:
+        out["dkim_domain"] = m.group(1).rstrip(";")
+    m = re.search(r"smtp\.mailfrom\s*=\s*([^\s;]+)", low)
+    if m:
+        out["spf_domain"] = m.group(1).rstrip(";")
+    m = re.search(r"header\.from\s*=\s*([^\s;]+)", low)
+    if m:
+        out["header_from"] = m.group(1).rstrip(";")
     return out
 
 

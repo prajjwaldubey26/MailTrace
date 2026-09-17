@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from engine.pipeline import analyze_raw
 from engine.report import build_pdf
-from engine.store import get_case, list_campaigns, list_cases, save_case
+from engine.store import correlate, dashboard, get_case, list_campaigns, list_cases, save_case
 
 ROOT = Path(__file__).resolve().parent
 SAMPLES = ROOT / "data" / "samples"
@@ -24,7 +24,24 @@ def home() -> str:
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"ok": True, "ps": "SIH26106"}
+    return {
+        "ok": True,
+        "ps": "SIH26106",
+        "service": "MailTrace",
+        "engine": "weighted_heuristics",
+        "ai_claim": "explainable rules — not a neural net",
+    }
+
+
+def _attach_intel(result: dict) -> dict:
+    attr = result.get("attribution") or {}
+    result["intel"] = correlate(
+        result.get("from_addr") or "",
+        result.get("from_domain") or "",
+        attr.get("origin_ip"),
+        exclude_id=result.get("id"),
+    )
+    return result
 
 
 SAMPLE_GUIDE = {
@@ -93,7 +110,7 @@ async def analyze(file: UploadFile | None = File(None), raw: str | None = Form(N
     result = analyze_raw(text, source_name=name)
     cid = save_case(result)
     result["id"] = cid
-    return result
+    return _attach_intel(result)
 
 
 @app.get("/api/cases")
@@ -106,12 +123,17 @@ def campaigns() -> list[dict]:
     return list_campaigns()
 
 
+@app.get("/api/dashboard")
+def dash() -> dict:
+    return dashboard()
+
+
 @app.get("/api/cases/{cid}")
 def case_one(cid: int):
     data = get_case(cid)
     if not data:
         return JSONResponse({"error": "not found"}, status_code=404)
-    return data
+    return _attach_intel(data)
 
 
 @app.get("/api/cases/{cid}/report.pdf")

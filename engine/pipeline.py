@@ -3,8 +3,13 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+from .custody import custody_record
+from .domain_intel import lookup_domain
+from .explain import explain_case, iocs
 from .geo import geolocate_hops
+from .headers_intel import analyze_headers
 from .nlp import analyze_text, domain_of
+from .pii import mask_text
 from .parse import (
     attachments,
     body_text,
@@ -20,6 +25,7 @@ from .score import score_case
 
 
 def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
+    custody = custody_record(raw)
     msg = parse_raw(raw)
     headers = flatten_headers(msg)
     hops = received_hops(msg)
@@ -40,8 +46,10 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
         auth["spf"] = auth.get("spf") if auth.get("spf") != "none" else "pass"
     if "fail" in spf_hdr:
         auth["spf"] = "fail"
-    scored = score_case(auth, nlp, geo_hops, origin)
-    return {
+    header_intel = analyze_headers(headers, hops, from_addr, reply)
+    domain_intel = lookup_domain(domain_of(from_addr))
+    scored = score_case(auth, nlp, geo_hops, origin, header_intel, domain_intel)
+    result = {
         "source_name": source_name,
         "analyzed_at": datetime.now(timezone.utc).isoformat(),
         "headers": headers,
@@ -49,12 +57,18 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
         "from_domain": domain_of(from_addr),
         "reply_to": reply,
         "subject": headers.get("Subject", ""),
-        "body_preview": body[:2500],
+        "body_preview": mask_text(body[:2500]),
         "urls": urls[:15],
         "attachments": files,
         "auth": auth,
         "hops": hops,
         "geo_hops": geo_hops,
         "nlp": nlp,
+        "header_intel": header_intel,
+        "domain_intel": domain_intel,
+        "custody": custody,
         **scored,
     }
+    result["explain"] = explain_case(result["score"], result["reasons"], nlp, auth)
+    result["iocs"] = iocs(result)
+    return result

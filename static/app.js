@@ -2,26 +2,38 @@ const $ = (id) => document.getElementById(id);
 let map, layer;
 
 function verdictCopy(data) {
-  const s = data.score;
-  if (s >= 65) {
-    return {
+  const c = data.threat_class || data.label;
+  const map = {
+    fraud: {
       cls: "danger",
-      title: "Dangerous — do not click links or pay",
-      sub: "This looks like a scam or someone pretending to be a trusted person.",
-    };
-  }
-  if (s >= 40) {
-    return {
+      title: "Fraud — payment / invoice diversion language",
+      sub: "Do not pay, wire, or buy gift cards. Confirm on a known channel.",
+    },
+    phishing: {
+      cls: "danger",
+      title: "Phishing — credential or lookalike lure",
+      sub: "Do not click links or enter passwords. This is a phishing-class verdict.",
+    },
+    impersonated: {
+      cls: "danger",
+      title: "Impersonated — trusted name, unmatched mailbox",
+      sub: "Display name or role does not match the From domain. Treat as BEC-style impersonation.",
+    },
+    suspicious: {
       cls: "warn",
-      title: "Suspicious — check with the real person on another channel",
-      sub: "Some warning signs. Do not send money until you confirm.",
-    };
-  }
-  return {
-    cls: "ok",
-    title: "Looks legitimate",
-    sub: "Mail stamps look real and we did not find the usual scam language.",
+      title: "Suspicious — mixed or weak indicators",
+      sub: "Some header, DNS, or content warnings. Verify before you act.",
+    },
+    legitimate: {
+      cls: "ok",
+      title: "Legitimate — no strong threat class fired",
+      sub: "Stamps and content did not match the fraud / phishing / impersonation rules.",
+    },
   };
+  if (map[c]) return map[c];
+  if ((data.score || 0) >= 65) return map.phishing;
+  if ((data.score || 0) >= 40) return map.suspicious;
+  return map.legitimate;
 }
 
 function stampLabel(val) {
@@ -69,15 +81,37 @@ async function loadCases() {
   box.innerHTML = "";
   if (!list.length) {
     box.innerHTML = `<p class="hint">Checks you run will appear here.</p>`;
-    return list;
+  } else {
+    list.slice(0, 12).forEach((c) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = `#${c.id} [${c.score}] ${c.subject || "(no subject)"}`;
+      b.onclick = () => showCase(c.id);
+      box.appendChild(b);
+    });
   }
-  list.slice(0, 12).forEach((c) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = `#${c.id} [${c.score}] ${c.subject || "(no subject)"}`;
-    b.onclick = () => showCase(c.id);
-    box.appendChild(b);
-  });
+  try {
+    const camps = await (await fetch("/api/campaigns")).json();
+    const cb = $("campaigns");
+    if (cb) {
+      cb.innerHTML = "";
+      if (!camps.length) {
+        cb.innerHTML = `<p class="hint">No grouped domains yet.</p>`;
+      } else {
+        camps.slice(0, 8).forEach((g) => {
+          const p = document.createElement("p");
+          p.className = "hint";
+          const classes = Object.entries(g.classes || {})
+            .map(([k, n]) => `${k}×${n}`)
+            .join(", ");
+          p.textContent = `${g.domain} — ${g.count} check(s), max ${g.max_score}/100 (${classes})`;
+          cb.appendChild(p);
+        });
+      }
+    }
+  } catch (e) {
+    /* campaigns endpoint optional */
+  }
   return list;
 }
 
@@ -124,24 +158,83 @@ function render(data) {
   $("bar").style.width = `${data.score}%`;
   $("bar").style.background = data.score >= 65 ? "#ff5d6c" : data.score >= 40 ? "#ffb020" : "#3ee07a";
   const a = data.auth || {};
+  $("authMatrix").innerHTML = ["spf", "dkim", "dmarc"]
+    .map((k) => {
+      const val = a[k] || "none";
+      const cls = val === "pass" ? "pass" : val === "fail" ? "fail" : "";
+      return `<div class="auth-cell ${cls}"><b>${k}</b>${stampLabel(val)}</div>`;
+    })
+    .join("");
   $("auth").innerHTML =
     `<span class="pill">Mail stamps</span>` +
     pill("SPF", a.spf) +
     pill("DKIM", a.dkim) +
     pill("DMARC", a.dmarc);
   $("mapCap").textContent = mapCaption(data.geo_hops);
+  const tclass = data.threat_class || data.label;
+  $("classLine").textContent = `Threat class: ${tclass} (legitimate / suspicious / impersonated / phishing / fraud)`;
+  const exp = data.explain || {};
+  $("explainNote").textContent = exp.note || "";
+  const hitl = $("hitl");
+  if (exp.hitl_review) {
+    hitl.className = "status warn";
+    hitl.textContent = "Human review: " + (exp.hitl_reason || "Uncertainty band — confirm before acting.");
+  } else {
+    hitl.className = "status hidden";
+    hitl.textContent = "";
+  }
+  $("intents").innerHTML = (exp.intents || [])
+    .map((x) => `<span class="pill">${x}</span>`)
+    .join(" ");
+  $("contrib").innerHTML = (exp.contributions || [])
+    .map(
+      (c) =>
+        `<div class="rowbar"><span>${c.code}</span><span class="track"><i style="width:${c.share}%"></i></span><span>+${c.points}</span></div>`
+    )
+    .join("") || `<p class="hint">No positive risk features.</p>`;
+  $("timeline").innerHTML = (data.geo_hops || [])
+    .map((h, i) => {
+      const place = [h.city, h.country].filter(Boolean).join(", ") || "no geo";
+      return `<li>${h.role === "origin" ? "Origin hop" : "Relay " + (i + 1)} — ${h.ip || "?"} · ${place} · ${h.isp || ""}</li>`;
+    })
+    .join("") || "<li>No public hops to list (common for Gmail-to-Gmail).</li>";
+  const ioc = data.iocs || {};
+  const iocLines = []
+    .concat((ioc.emails || []).map((x) => "email: " + x))
+    .concat((ioc.domains || []).map((x) => "domain: " + x))
+    .concat((ioc.ips || []).map((x) => "ip: " + x))
+    .concat((ioc.urls || []).slice(0, 8).map((x) => "url: " + x))
+    .concat((ioc.files || []).map((x) => "file: " + x));
+  $("iocs").innerHTML = iocLines.length
+    ? iocLines.map((x) => `<li>${x}</li>`).join("")
+    : "<li>No IOCs extracted.</li>";
   $("reasons").innerHTML = (data.reasons || [])
     .map((r) => `<li>${r.detail} <span class="hint">(+${r.points})</span></li>`)
     .join("") || "<li>No warning signs added to the score.</li>";
   $("attr").textContent = hopPlain(data.attribution || {});
+  const anoms = data.header_intel?.anomalies || [];
+  $("anoms").innerHTML = anoms.length
+    ? anoms.map((a) => `<li>${a.detail}</li>`).join("")
+    : "<li>No header-domain mismatches flagged.</li>";
+  const di = data.domain_intel || {};
+  $("domIntel").textContent = di.domain
+    ? `${di.domain}: ${(di.notes || []).join(" ")} MX=${(di.mx_records || []).join(", ") || "none"}`
+    : "No From domain to look up.";
+  const cu = data.custody || {};
+  $("custody").textContent = cu.sha256
+    ? `${cu.algorithm} ${cu.sha256} (${cu.byte_length} bytes)`
+    : "Hash not stored on this older case.";
   $("nlp").textContent = JSON.stringify(
     {
-      classification: data.label,
-      urgency: data.nlp?.urgency_cues,
-      impersonation: data.nlp?.impersonation_cues,
-      lookalike: data.nlp?.lookalike_tokens,
+      threat_class: tclass,
+      score: data.score,
+      header_intel: data.header_intel,
+      domain_intel: data.domain_intel,
+      custody: data.custody,
+      attribution: data.attribution,
+      explain: data.explain,
+      iocs: data.iocs,
       urls: data.urls,
-      url_issues: data.nlp?.url_issues,
       attachments: data.attachments,
       hops: data.geo_hops,
     },
@@ -149,6 +242,12 @@ function render(data) {
     2
   );
   $("pdf").href = `/api/cases/${data.id}/report.pdf`;
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const json = $("json");
+  if (json._url) URL.revokeObjectURL(json._url);
+  json._url = URL.createObjectURL(blob);
+  json.href = json._url;
+  json.download = `mailtrace-case-${data.id || "latest"}.json`;
   drawMap(data.geo_hops || []);
 }
 
@@ -216,6 +315,28 @@ $("clearFile").onclick = clearUpload;
 
 $("file").addEventListener("change", syncFileUi);
 $("raw").addEventListener("input", syncFileUi);
+
+const drop = $("drop");
+["dragenter", "dragover"].forEach((ev) => {
+  drop.addEventListener(ev, (e) => {
+    e.preventDefault();
+    drop.classList.add("drag");
+  });
+});
+["dragleave", "drop"].forEach((ev) => {
+  drop.addEventListener(ev, (e) => {
+    e.preventDefault();
+    drop.classList.remove("drag");
+  });
+});
+drop.addEventListener("drop", (e) => {
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (!f) return;
+  const dt = new DataTransfer();
+  dt.items.add(f);
+  $("file").files = dt.files;
+  syncFileUi();
+});
 
 (async function boot() {
   try {

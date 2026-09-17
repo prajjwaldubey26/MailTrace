@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from engine.pipeline import analyze_raw
 from engine.report import build_pdf
-from engine.store import get_case, list_cases, save_case
+from engine.store import get_case, list_campaigns, list_cases, save_case
 
 ROOT = Path(__file__).resolve().parent
 SAMPLES = ROOT / "data" / "samples"
@@ -99,6 +99,11 @@ async def analyze(file: UploadFile | None = File(None), raw: str | None = Form(N
 @app.get("/api/cases")
 def cases() -> list[dict]:
     return list_cases()
+
+
+@app.get("/api/campaigns")
+def campaigns() -> list[dict]:
+    return list_campaigns()
 
 
 @app.get("/api/cases/{cid}")

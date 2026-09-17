@@ -17,7 +17,13 @@ def build_pdf(case: dict) -> bytes:
     story.append(Paragraph("SIH26106 Forensic Email Intelligence Report", styles["Title"]))
     story.append(Paragraph("AICTE Cyber Security Cell — prototype (simulation / lab samples)", styles["Normal"]))
     story.append(Spacer(1, 8))
-    story.append(Paragraph(f"<b>Classification:</b> {case.get('label')} &nbsp; <b>Score:</b> {case.get('score')}/100", styles["Heading2"]))
+    tclass = case.get("threat_class") or case.get("label")
+    story.append(
+        Paragraph(
+            f"<b>Threat class:</b> {tclass} &nbsp; <b>Score:</b> {case.get('score')}/100",
+            styles["Heading2"],
+        )
+    )
     story.append(Paragraph(f"<b>Subject:</b> {case.get('subject') or '(none)'}", styles["Normal"]))
     story.append(Paragraph(f"<b>From:</b> {case.get('from_addr')}", styles["Normal"]))
     story.append(Paragraph(f"<b>Analyzed:</b> {case.get('analyzed_at')}", styles["Normal"]))
@@ -25,7 +31,36 @@ def build_pdf(case: dict) -> bytes:
     auth = case.get("auth") or {}
     story.append(Paragraph(f"SPF={auth.get('spf')} &nbsp; DKIM={auth.get('dkim')} &nbsp; DMARC={auth.get('dmarc')}", styles["Normal"]))
     story.append(Spacer(1, 8))
-    story.append(Paragraph("Scoring reasons", styles["Heading2"]))
+    cust = case.get("custody") or {}
+    if cust:
+        story.append(Paragraph("Chain of custody (prototype)", styles["Heading2"]))
+        story.append(Paragraph(f"{cust.get('algorithm')}: {cust.get('sha256')}", styles["Normal"]))
+        story.append(Paragraph(f"Bytes: {cust.get('byte_length')} &nbsp; Hashed: {cust.get('hashed_at')}", styles["Normal"]))
+        story.append(Paragraph(cust.get("note") or "", styles["Italic"]))
+        story.append(Spacer(1, 8))
+    di = case.get("domain_intel") or {}
+    if di:
+        story.append(Paragraph("Domain intelligence (public DNS)", styles["Heading2"]))
+        story.append(Paragraph(f"From domain: {di.get('domain')}", styles["Normal"]))
+        story.append(Paragraph("MX: " + (", ".join(di.get("mx_records") or []) or "(none)"), styles["Normal"]))
+        story.append(Paragraph("A: " + (", ".join(di.get("a_records") or []) or "(none)"), styles["Normal"]))
+        for n in di.get("notes") or []:
+            story.append(Paragraph(n, styles["Normal"]))
+        story.append(Spacer(1, 8))
+    hi = case.get("header_intel") or {}
+    anoms = hi.get("anomalies") or []
+    if anoms:
+        story.append(Paragraph("Header anomalies", styles["Heading2"]))
+        for a in anoms:
+            story.append(Paragraph(a.get("detail") or a.get("code") or "", styles["Normal"]))
+        story.append(Spacer(1, 8))
+    story.append(Paragraph("Explainability (weighted features, not SHAP/neural net)", styles["Heading2"]))
+    exp = case.get("explain") or {}
+    story.append(Paragraph(exp.get("note") or "", styles["Italic"]))
+    if exp.get("hitl_review"):
+        story.append(Paragraph("HITL: " + (exp.get("hitl_reason") or "Needs human review"), styles["Normal"]))
+    story.append(Paragraph("Intents: " + ", ".join(exp.get("intents") or []) or "none", styles["Normal"]))
+    story.append(Spacer(1, 8))
     for r in case.get("reasons") or []:
         story.append(Paragraph(f"+{r['points']} [{r['code']}] {r['detail']}", styles["Normal"]))
     story.append(Spacer(1, 8))

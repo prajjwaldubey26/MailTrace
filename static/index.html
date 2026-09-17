@@ -5,53 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MailTrace · SIH26106</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/style.css?v=5" />
+  <link rel="stylesheet" href="/static/style.css?v=9" />
 </head>
 <body>
   <header class="top">
     <div>
       <div class="kicker">SIH26106 · AICTE Cyber Security Cell</div>
       <h1>MailTrace</h1>
-      <p>Paste a real email (full original). We say if it looks safe or fake, why, and which servers it passed.</p>
+      <p>Detect → Explain → Trace → Investigate. Upload a raw .eml or paste Show original.</p>
+      <div class="flow">
+        <span>Detect</span><span>Explain</span><span>Trace</span><span>Investigate</span>
+      </div>
     </div>
-    <div class="badge">We locate servers, not a person</div>
+    <div class="badge">Servers, not a person</div>
   </header>
 
   <main class="grid">
     <section class="panel">
-      <h2>Check a real email</h2>
-      <ol class="steps">
-        <li>Open Gmail → the message → ⋮ → <strong>Show original</strong></li>
-        <li>Copy all (or download .eml) and paste / upload below</li>
-        <li>Click Check this email</li>
-      </ol>
-      <textarea id="raw" placeholder="Paste the full original email, including From, Received, Authentication-Results…"></textarea>
+      <h2>Analyze email</h2>
+      <p class="hint">Download the raw .eml from Gmail (⋮ → Show original → Download) or paste headers + body.</p>
+      <div id="drop" class="drop">
+        <strong>Drop your .eml file here</strong>
+        <span>or click to browse · supports .eml, .txt</span>
+        <input id="file" type="file" accept=".eml,.txt,message/rfc822" />
+      </div>
+      <textarea id="raw" placeholder="Or paste the full original email, including From, Received, Authentication-Results…"></textarea>
       <div class="row">
-        <label class="file">
-          Or upload .eml
-          <input id="file" type="file" accept=".eml,.txt,message/rfc822" />
-        </label>
         <button id="clearFile" class="ghost hidden" type="button">Clear file</button>
-        <button id="run" type="button">Check this email</button>
+        <button id="run" type="button">Analyze email</button>
       </div>
       <p class="file-name" id="fileName"></p>
 
       <h2>Recent checks</h2>
       <div id="cases" class="cases"></div>
+      <h2>Campaign grouping</h2>
+      <p class="hint">Same From domain across saved checks (pattern view, not a person).</p>
+      <div id="campaigns" class="cases"></div>
     </section>
 
     <section class="panel grow">
       <div id="status" class="status hidden"></div>
       <div id="empty" class="empty">
-        <p class="empty-title">No email checked yet</p>
-        <p>Paste Show original or upload a .eml on the left. The banner will say if it looks real or fake, with reasons.</p>
+        <p class="empty-title">No email analyzed yet</p>
+        <p>Drop an .eml or paste Show original. You get a threat class, feature bars, hop map, and SHA-256 hash.</p>
       </div>
       <div id="result" class="hidden">
+        <div id="hitl" class="status warn hidden"></div>
         <div id="verdict" class="verdict"></div>
         <div class="scoreline">
           <div>
             <div class="subject" id="subject">—</div>
             <div class="from" id="from">—</div>
+            <div class="intents" id="intents"></div>
           </div>
           <div class="meter">
             <div id="scoreNum">0</div>
@@ -59,9 +64,16 @@
             <div class="kicker">risk / 100</div>
           </div>
         </div>
+        <div class="auth-matrix" id="authMatrix"></div>
         <div class="auth" id="auth"></div>
+        <p class="class-line" id="classLine"></p>
+        <h3>Why this verdict (feature share)</h3>
+        <p class="hint" id="explainNote"></p>
+        <div id="contrib" class="contrib"></div>
         <p class="map-cap" id="mapCap"></p>
         <div id="map"></div>
+        <h3>SMTP hop timeline</h3>
+        <ol id="timeline" class="timeline"></ol>
         <div class="split">
           <div>
             <h3>Why we say this</h3>
@@ -71,6 +83,22 @@
             <h3>Where the mail travelled</h3>
             <p id="attr"></p>
             <a id="pdf" class="pdf" href="#">Download report (PDF)</a>
+            <a id="json" class="pdf ghost-link" href="#">Download JSON</a>
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <h3>Indicators (IOCs)</h3>
+            <ul id="iocs"></ul>
+            <h3>Header anomalies</h3>
+            <ul id="anoms"></ul>
+          </div>
+          <div>
+            <h3>Domain intelligence</h3>
+            <p id="domIntel"></p>
+            <h3>Evidence hash (local SHA-256)</h3>
+            <p id="custody" class="hash"></p>
+            <p class="hint">Hash of the exact file/paste. Not a blockchain stamp.</p>
           </div>
         </div>
         <details class="tech">
@@ -81,6 +109,6 @@
     </section>
   </main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/static/app.js?v=5"></script>
+  <script src="/static/app.js?v=8"></script>
 </body>
 </html>

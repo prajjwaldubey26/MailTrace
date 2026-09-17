@@ -1,0 +1,21 @@
+Date: Thu, 17 Sep 2026 08:10:00 +0530
+From: "College Examination Cell" <exams@nitdelhi.ac.in>
+To: student@nitdelhi.ac.in
+Subject: Mid-semester timetable published on the portal
+Message-ID: <exam-2026-09-17@nitdelhi.ac.in>
+Return-Path: <exams@nitdelhi.ac.in>
+Reply-To: exams@nitdelhi.ac.in
+Authentication-Results: mx.nitdelhi.ac.in; spf=pass smtp.mailfrom=exams@nitdelhi.ac.in; dkim=pass header.d=nitdelhi.ac.in; dmarc=pass
+Received-SPF: pass (sender IP is 117.239.80.44)
+Received: from mx.nitdelhi.ac.in (mx.nitdelhi.ac.in [202.141.80.10]) by mailbox.nitdelhi.ac.in with ESMTPS id a1
+Received: from mailhub.nkn.in (mailhub.nkn.in [117.239.80.44]) by mx.nitdelhi.ac.in with ESMTPS id b2
+
+Dear student,
+
+The mid-semester timetable is now available on the academic portal.
+
+Please log in at https://nitdelhi.ac.in/academics and download the PDF.
+
+Regards,
+Examination Cell
+NIT Delhi

@@ -1,0 +1,35 @@
+MIME-Version: 1.0
+Date: Thu, 17 Sep 2026 09:41:12 +0530
+From: "Accounts Payable" <payments@paypa1-secure-login.xyz>
+To: finance@nitdelhi.ac.in
+Subject: URGENT: Invoice overdue — verify now or account will be closed
+Message-ID: <inv-88421@paypa1-secure-login.xyz>
+Return-Path: <bounce@paypa1-secure-login.xyz>
+Reply-To: vendor.payments.desk@gmail.com
+Authentication-Results: mx.nitdelhi.ac.in; spf=fail smtp.mailfrom=paypa1-secure-login.xyz; dkim=fail; dmarc=fail
+Received-SPF: fail (sender IP is 185.220.101.47)
+Received: from mx.nitdelhi.ac.in (mx.nitdelhi.ac.in [202.141.80.10]) by mailbox.nitdelhi.ac.in with ESMTP id p1
+Received: from unknown ([45.77.88.21]) by mx.nitdelhi.ac.in with ESMTP id p2
+Received: from tor-exit ([185.220.101.47]) by vps.sg.example with ESMTP id p3
+Content-Type: multipart/mixed; boundary="====SIH26106===="
+
+--====SIH26106====
+Content-Type: text/plain; charset="utf-8"
+
+Dear Finance Team,
+
+Your GST invoice payment failed. Click here immediately to verify:
+
+http://45.77.88.21/invoice-verify.html
+
+Do not tell anyone in accounts. Wire transfer must be completed within 24 hours or the vendor account will be suspended.
+
+Regards,
+Accounts Payable
+PayPal Billing
+--====SIH26106====
+Content-Type: text/html; name="invoice-verify.html"
+Content-Disposition: attachment; filename="invoice-verify.html"
+
+<html><body>Demo attachment only. Not a live phish kit.</body></html>
+--====SIH26106====--

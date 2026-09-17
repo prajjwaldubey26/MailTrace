@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MailTrace · SIH26106</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/static/style.css?v=5" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <div class="kicker">SIH26106 · AICTE Cyber Security Cell</div>
+      <h1>MailTrace</h1>
+      <p>Paste a real email (full original). We say if it looks safe or fake, why, and which servers it passed.</p>
+    </div>
+    <div class="badge">We locate servers, not a person</div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <h2>Check a real email</h2>
+      <ol class="steps">
+        <li>Open Gmail → the message → ⋮ → <strong>Show original</strong></li>
+        <li>Copy all (or download .eml) and paste / upload below</li>
+        <li>Click Check this email</li>
+      </ol>
+      <textarea id="raw" placeholder="Paste the full original email, including From, Received, Authentication-Results…"></textarea>
+      <div class="row">
+        <label class="file">
+          Or upload .eml
+          <input id="file" type="file" accept=".eml,.txt,message/rfc822" />
+        </label>
+        <button id="clearFile" class="ghost hidden" type="button">Clear file</button>
+        <button id="run" type="button">Check this email</button>
+      </div>
+      <p class="file-name" id="fileName"></p>
+
+      <h2>Recent checks</h2>
+      <div id="cases" class="cases"></div>
+    </section>
+
+    <section class="panel grow">
+      <div id="status" class="status hidden"></div>
+      <div id="empty" class="empty">
+        <p class="empty-title">No email checked yet</p>
+        <p>Paste Show original or upload a .eml on the left. The banner will say if it looks real or fake, with reasons.</p>
+      </div>
+      <div id="result" class="hidden">
+        <div id="verdict" class="verdict"></div>
+        <div class="scoreline">
+          <div>
+            <div class="subject" id="subject">—</div>
+            <div class="from" id="from">—</div>
+          </div>
+          <div class="meter">
+            <div id="scoreNum">0</div>
+            <div class="bar"><i id="bar"></i></div>
+            <div class="kicker">risk / 100</div>
+          </div>
+        </div>
+        <div class="auth" id="auth"></div>
+        <p class="map-cap" id="mapCap"></p>
+        <div id="map"></div>
+        <div class="split">
+          <div>
+            <h3>Why we say this</h3>
+            <ul id="reasons"></ul>
+          </div>
+          <div>
+            <h3>Where the mail travelled</h3>
+            <p id="attr"></p>
+            <a id="pdf" class="pdf" href="#">Download report (PDF)</a>
+          </div>
+        </div>
+        <details class="tech">
+          <summary>Technical details (for judges)</summary>
+          <pre id="nlp"></pre>
+        </details>
+      </div>
+    </section>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/app.js?v=5"></script>
+</body>
+</html>

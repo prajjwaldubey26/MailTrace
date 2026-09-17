@@ -1,0 +1,18 @@
+Date: Thu, 17 Sep 2026 07:15:33 +0000
+From: "Google Workspace Security" <no-reply@google.com>
+To: admin@startup.in
+Subject: Security alert for your Google Account
+Message-ID: <CAF000google@google.com>
+Return-Path: <no-reply@google.com>
+Reply-To: no-reply@google.com
+Authentication-Results: mx.google.com; spf=pass smtp.mailfrom=google.com; dkim=pass header.d=google.com; dmarc=pass
+Received-SPF: pass
+Received: from mail-yk1.google.com (mail-yk1.google.com [142.250.190.14]) by mx.google.com with ESMTPS
+Received: from mail-wm.google.com ([8.8.8.8]) by mail-yk1.google.com
+
+We detected a new sign-in from Chrome on Windows.
+
+If this was you, you can ignore this message.
+If not, review devices at https://myaccount.google.com/security
+
+Google Account team

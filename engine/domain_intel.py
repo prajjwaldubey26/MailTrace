@@ -34,7 +34,7 @@ def lookup_domain(domain: str) -> dict[str, Any]:
             "ok": False,
             "a_records": [],
             "mx_records": [],
-            "notes": ["No registrable From domain to query."],
+            "notes": ["No From website name to look up."],
             "nxdomain": False,
         }
     a = _dns_google(domain, "A")
@@ -42,12 +42,12 @@ def lookup_domain(domain: str) -> dict[str, Any]:
     notes = []
     nx = False
     if not a and not mx:
-        notes.append("No A/MX from public DNS (offline, blocked, or domain may not exist).")
+        notes.append("Could not look up this website (offline, blocked, or it may not exist).")
         nx = True
     elif not mx:
-        notes.append("No MX records — unusual for a mailbox domain.")
+        notes.append("This website has no mailbox record — unusual for a real sender.")
     else:
-        notes.append("MX present — domain can receive mail (not proof the From is honest).")
+        notes.append("This website can receive mail. That does not prove the From name is honest.")
     return {
         "domain": domain,
         "ok": bool(a or mx),

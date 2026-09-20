@@ -13,5 +13,5 @@ def custody_record(raw: str) -> dict:
         "sha256": hashlib.sha256(blob).hexdigest(),
         "byte_length": len(blob),
         "hashed_at": datetime.now(timezone.utc).isoformat(),
-        "note": "Hash of the exact pasted/uploaded original. Prototype evidence log, not a legal chain-of-custody.",
+        "note": "Fingerprint of the exact pasted or uploaded email. Saved here for the demo — not a legal court stamp.",
     }

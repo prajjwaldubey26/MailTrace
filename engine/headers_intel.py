@@ -29,7 +29,7 @@ def analyze_headers(headers: dict[str, str], hops: list[dict], from_addr: str, r
         anomalies.append(
             {
                 "code": "return_path_mismatch",
-                "detail": f"Return-Path domain ({rp_d}) differs from From ({from_d}) — possible spoof / bounce mismatch",
+                "detail": f"The bounce address ({rp_d}) is not the same as From ({from_d})",
                 "points": 10,
             }
         )
@@ -41,7 +41,7 @@ def analyze_headers(headers: dict[str, str], hops: list[dict], from_addr: str, r
             anomalies.append(
                 {
                     "code": "msgid_mismatch",
-                    "detail": f"Message-ID host ({mid_d}) does not match From domain ({from_d})",
+                    "detail": f"The message ID host ({mid_d}) does not match From ({from_d})",
                     "points": 6,
                 }
             )
@@ -49,7 +49,7 @@ def analyze_headers(headers: dict[str, str], hops: list[dict], from_addr: str, r
         anomalies.append(
             {
                 "code": "sender_mismatch",
-                "detail": f"Sender header ({sender_d}) differs from From ({from_d})",
+                "detail": f"The Sender header ({sender_d}) is not the same as From ({from_d})",
                 "points": 8,
             }
         )
@@ -57,7 +57,7 @@ def analyze_headers(headers: dict[str, str], hops: list[dict], from_addr: str, r
         anomalies.append(
             {
                 "code": "no_public_received_ip",
-                "detail": "No public IPv4 in Received chain (common for Gmail). Origin geo not available.",
+                "detail": "No public computer address in the path (common for Gmail). Map may be empty.",
                 "points": 0,
             }
         )
@@ -65,7 +65,7 @@ def analyze_headers(headers: dict[str, str], hops: list[dict], from_addr: str, r
         anomalies.append(
             {
                 "code": "long_relay_chain",
-                "detail": f"Unusually long Received chain ({len(hops)} hops) — possible relay manipulation",
+                "detail": f"Unusually long path ({len(hops)} stops)",
                 "points": 4,
             }
         )

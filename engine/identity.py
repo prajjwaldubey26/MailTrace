@@ -26,13 +26,13 @@ def _cmp(from_d: str, other_d: str, label: str, missing: str) -> dict[str, str]:
             "field": label,
             "value": other_d,
             "status": "same_org",
-            "note": f"Shares organisational root {root_f} with From domain {from_d}.",
+            "note": f"Same organisation as the From address ({from_d}).",
         }
     return {
         "field": label,
         "value": other_d,
         "status": "mismatch",
-        "note": f"{label} domain {other_d} does not match From domain {from_d}.",
+        "note": f"{label} ({other_d}) does not match the From address ({from_d}).",
     }
 
 
@@ -52,10 +52,10 @@ def identity_alignment(
         spf_d = domain_of(spf_d)
 
     rows = [
-        _cmp(from_d, rp_d, "Return-Path", "No Return-Path (or empty). Bounce routing not independently declared."),
-        _cmp(from_d, reply_d, "Reply-To", "No separate Reply-To (defaults to From)."),
-        _cmp(from_d, dkim_d, "DKIM signing domain", "No header.d= in Authentication-Results."),
-        _cmp(from_d, spf_d, "SPF evaluated domain", "No smtp.mailfrom= in Authentication-Results."),
+        _cmp(from_d, rp_d, "Bounce address", "No bounce address given."),
+        _cmp(from_d, reply_d, "Reply-To", "No separate Reply-To (replies go to From)."),
+        _cmp(from_d, dkim_d, "Signing domain", "No signature domain in the stamps."),
+        _cmp(from_d, spf_d, "Allowed-sender domain", "No allowed-sender domain in the stamps."),
     ]
     mismatches = sum(1 for r in rows if r["status"] == "mismatch")
     return {
@@ -63,5 +63,5 @@ def identity_alignment(
         "rows": rows,
         "mismatch_count": mismatches,
         "clean": mismatches == 0,
-        "note": "Same organisational root is not a person. It only means bounce/signing domains belong to the same DNS tree.",
+        "note": "Matching domains means the same organisation — not that a named person sent the mail.",
     }

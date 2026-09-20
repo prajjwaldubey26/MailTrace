@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MailTrace · SIH26106 forensic console</title>
+  <title>MailTrace · check an email</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/style.css?v=14" />
+  <link rel="stylesheet" href="/static/style.css?v=16" />
 </head>
 <body>
   <div class="site-bg" aria-hidden="true">
@@ -15,68 +15,68 @@
   </div>
   <section id="landing" class="landing">
     <header class="land-nav">
-      <div>
+      <div class="land-brand">
         <span class="kicker">SIH26106</span>
         <strong>MailTrace</strong>
       </div>
       <div class="land-nav-actions">
-        <button type="button" class="ghost" id="landSkip">Skip to console</button>
-        <button type="button" id="landEnter">Enter SOC console</button>
+        <button type="button" class="ghost" id="landSkip">Skip intro</button>
+        <button type="button" id="landEnter">Open the checker</button>
       </div>
     </header>
     <div class="land-main">
       <div class="land-copy">
-        <p class="kicker">AICTE Cyber Security Cell · email threat investigation</p>
+        <p class="kicker">AICTE Cyber Security Cell · is this email a scam?</p>
         <h1 class="land-title">Trace the <em>path</em>.<br />Not the person.</h1>
-        <p class="land-lead">Drop an original email. MailTrace classifies five threat types, explains every risk point, maps public mail hops, and seals the artefact with SHA-256. Infrastructure attribution only.</p>
+        <p class="land-lead">Drop the original email. We tell you if it looks like a scam, why, and which mail computers it passed. We locate servers, not a person.</p>
         <div class="land-cta">
-          <button type="button" id="landLab">Trace lab invoice</button>
-          <button type="button" class="ghost" id="landSafe">See a safe college mail</button>
+          <button type="button" id="landLab">Try a scam example</button>
+          <button type="button" class="ghost" id="landSafe">Try a safe example</button>
         </div>
-        <p class="land-honest">Weighted heuristics — not a neural net. No Gmail login. No mailbox hacking.</p>
+        <p class="land-honest">Simple rules we can explain — not a chatbot. No Gmail login. We don’t break into mailboxes.</p>
       </div>
       <aside class="land-card">
         <div class="land-card-top">
           <div class="donut land-donut" style="--p:92;--c:#ff5d6c"><span>92</span><small>Risk / 100</small></div>
           <div>
-            <p class="kicker">Primary findings</p>
-            <div class="verdict danger">Fraud — payment diversion<small>Do not pay. Confirm on a known channel.</small></div>
+            <p class="kicker">Example result — not a live scan</p>
+            <div class="verdict danger">Looks like a payment scam<small>Do not pay. Call the real person on a number you already have.</small></div>
           </div>
         </div>
         <div class="auth-matrix land-auth">
-          <div class="auth-cell fail"><b>spf</b>fail</div>
-          <div class="auth-cell fail"><b>dkim</b>fail</div>
-          <div class="auth-cell fail"><b>dmarc</b>fail</div>
+          <div class="auth-cell fail"><b>Sender check</b>failed</div>
+          <div class="auth-cell fail"><b>Signature</b>failed</div>
+          <div class="auth-cell fail"><b>Policy</b>failed</div>
         </div>
-        <p class="land-seal">SHA-256 custody · first public hop = a mail server</p>
+        <p class="land-seal">We save a fingerprint of the file. Red pin = a mail computer, not a house.</p>
         <ol class="land-mini-phases">
-          <li><span>CLEAN</span> Ingest &amp; hash</li>
-          <li><span class="bad">FLAGGED</span> Authentication</li>
-          <li><span class="bad">FLAGGED</span> Identity mismatch</li>
-          <li><span class="bad">FLAGGED</span> Language / lookalike</li>
+          <li><span>OK</span> Saved the email</li>
+          <li><span class="bad">Warning</span> Sender checks failed</li>
+          <li><span class="bad">Warning</span> From name doesn’t match</li>
+          <li><span class="bad">Warning</span> Fake-looking words</li>
         </ol>
       </aside>
     </div>
     <div class="land-features">
       <button type="button" class="land-feat" data-goto="explain">
         <b>01 Detect</b>
-        <h3>Five threat classes</h3>
-        <p>Legitimate, suspicious, impersonated, phishing, fraud — from SPF/DKIM/DMARC, lookalikes, and payment language.</p>
+        <h3>Five simple labels</h3>
+        <p>Safe, check this, fake identity, phishing, or fraud — from sender stamps, fake names, and payment language.</p>
       </button>
       <button type="button" class="land-feat" data-goto="timeline">
         <b>02 Explain</b>
         <h3>Why this score</h3>
-        <p>Feature-share bars and a seven-phase timeline. HITL band 40–65. Not SHAP, not a transformer.</p>
+        <p>Bars show which warning added points. A score of 40–65 means a person should look again.</p>
       </button>
       <button type="button" class="land-feat" data-goto="trace">
         <b>03 Trace</b>
-        <h3>Hop map</h3>
-        <p>Public Received IPs on a world map. Red pin is the first public relay — a computer, not a house.</p>
+        <h3>Map of mail computers</h3>
+        <p>Public IPs from the email’s path. The red pin is the first public computer we saw — not someone’s house.</p>
       </button>
       <button type="button" class="land-feat" data-goto="intel">
         <b>04 Investigate</b>
-        <h3>Identity · IOCs · vault</h3>
-        <p>Org-domain alignment, campaign DNA, defanged IOCs, and a local SHA-256 evidence seal.</p>
+        <h3>Who, clues, saved copy</h3>
+        <p>Does the From name match? Have we seen this sender before? We keep a fingerprint of the original file.</p>
       </button>
     </div>
   </section>
@@ -86,59 +86,59 @@
     <div>
       <div class="kicker">SIH26106 · AICTE Cyber Security Cell</div>
       <h1>MailTrace</h1>
-      <p>Detect · Explain · Trace · Investigate — mail-server infrastructure, not a person.</p>
+      <p>Check an email. See why it scored that way. See the path of mail computers — not a person.</p>
     </div>
     <div class="top-right">
-      <button type="button" class="ghost" id="backLanding">Landing</button>
+      <button type="button" class="ghost" id="backLanding">Home</button>
       <nav class="modes" id="modes">
-        <button type="button" class="on" data-mode="ingest">Ingest &amp; Scanner</button>
-        <button type="button" data-mode="queue">SOC Case Queue</button>
+        <button type="button" class="on" data-mode="ingest">Check email</button>
+        <button type="button" data-mode="queue">Past checks</button>
       </nav>
     </div>
   </header>
 
   <section class="kpis" id="kpis">
-    <div id="health" class="kpi health off">Checking backend…</div>
-    <div class="kpi"><b id="kpiN">0</b><span>Investigations</span></div>
-    <div class="kpi"><b id="kpiAvg">0</b><span>Avg risk</span></div>
-    <div class="kpi hot"><b id="kpiHigh">0</b><span>High / critical</span></div>
-    <div class="kpi"><b id="kpiCamp">0</b><span>Campaign domains</span></div>
-    <div class="kpi"><b id="kpiSeal">0</b><span>Sealed evidence</span></div>
+    <div id="health" class="kpi health off">Checking if the app is on…</div>
+    <div class="kpi"><b id="kpiN">0</b><span>Emails checked</span></div>
+    <div class="kpi"><b id="kpiAvg">0</b><span>Average score</span></div>
+    <div class="kpi hot"><b id="kpiHigh">0</b><span>Dangerous</span></div>
+    <div class="kpi"><b id="kpiCamp">0</b><span>Repeat senders</span></div>
+    <div class="kpi"><b id="kpiSeal">0</b><span>Saved copies</span></div>
   </section>
 
   <section id="view-ingest">
     <main class="grid">
       <section class="panel">
-        <h2>Ingest artefact</h2>
-        <p class="hint">Gmail ⋮ → Show original → download .eml. Outlook: save as .eml, not .msg.</p>
+        <h2>Check an email</h2>
+        <p class="hint">Gmail ⋮ → Show original → download the file. Outlook: save as .eml, not .msg.</p>
         <div id="drop" class="drop">
-          <strong>Drop RFC-822 .eml here</strong>
-          <span>or click to browse · .eml / .txt</span>
+          <strong>Drop your email file here</strong>
+          <span>or click to choose · .eml / .txt</span>
           <input id="file" type="file" accept=".eml,.txt,message/rfc822" />
         </div>
         <div id="fileChip" class="chip hidden"><span id="fileChipName"></span><button type="button" id="clearFile" class="chip-x" aria-label="Clear file">×</button></div>
-        <textarea id="raw" placeholder="Or paste full original headers + body…"></textarea>
+        <textarea id="raw" placeholder="Or paste the full original email (headers + body)…"></textarea>
         <div class="row">
-          <button id="run" type="button">Analyze</button>
+          <button id="run" type="button">Check this email</button>
         </div>
         <p class="file-name" id="fileName"></p>
 
-        <h2>Lab presets</h2>
-        <p class="hint">Classroom artefacts only — not live mailbox access.</p>
+        <h2>Practice emails</h2>
+        <p class="hint">Examples for class. They are not your real inbox.</p>
         <div id="presets" class="presets"></div>
 
-        <h2>Recent cases</h2>
+        <h2>Recent checks</h2>
         <div id="cases" class="cases"></div>
-        <h2>Campaign DNA</h2>
-        <p class="hint">Same From domain on this instance = possible coordinated infrastructure.</p>
+        <h2>Same sender domain</h2>
+        <p class="hint">If the same From domain shows up more than once here, it may be the same scam setup.</p>
         <div id="campaigns" class="cases"></div>
       </section>
 
       <section class="panel grow">
         <div id="status" class="status hidden"></div>
         <div id="empty" class="empty">
-          <p class="empty-title">No case loaded</p>
-          <p>Drop an original email or run a lab preset. You get primary findings, a seven-phase forensic timeline, identity alignment, hop map, IOCs, and a SHA-256 evidence seal.</p>
+          <p class="empty-title">Nothing checked yet</p>
+          <p>Drop an email or click a practice example. You’ll get a plain-English result, a map of mail computers, and a report.</p>
         </div>
         <div id="result" class="hidden">
           <div id="hitl" class="status warn hidden"></div>
@@ -149,7 +149,7 @@
               <div class="counts" id="findCounts"></div>
             </div>
             <div>
-              <p class="kicker">Primary investigation findings</p>
+              <p class="kicker">Main result</p>
               <div id="verdict" class="verdict"></div>
               <div class="subject" id="subject">—</div>
               <div class="from" id="from">—</div>
@@ -162,47 +162,47 @@
           <div class="guidance" id="guidance"></div>
 
           <nav class="tabs" id="tabs">
-            <button type="button" class="on" data-tab="timeline">Forensic timeline</button>
-            <button type="button" data-tab="identity">Identity</button>
-            <button type="button" data-tab="explain">Explain</button>
-            <button type="button" data-tab="trace">Trace map</button>
-            <button type="button" data-tab="graph">Attack graph</button>
-            <button type="button" data-tab="iocs">IOC explorer</button>
-            <button type="button" data-tab="intel">Threat intel</button>
-            <button type="button" data-tab="vault">Evidence vault</button>
-            <button type="button" data-tab="play">Playbook</button>
+            <button type="button" class="on" data-tab="timeline">What we checked</button>
+            <button type="button" data-tab="identity">Who it claims to be</button>
+            <button type="button" data-tab="explain">Why this score</button>
+            <button type="button" data-tab="trace">Map</button>
+            <button type="button" data-tab="graph">How it connects</button>
+            <button type="button" data-tab="iocs">Warning clues</button>
+            <button type="button" data-tab="intel">Seen before?</button>
+            <button type="button" data-tab="vault">Saved copy</button>
+            <button type="button" data-tab="play">What to do</button>
           </nav>
 
           <div class="tab on" id="tab-timeline">
             <p class="hint" id="phaseCap"></p>
             <ol id="phases" class="phases"></ol>
-            <h3>Detailed findings</h3>
+            <h3>What we found</h3>
             <div id="findList" class="find-list"></div>
           </div>
 
           <div class="tab" id="tab-identity">
-            <p class="hint">Same organisational root means bounce/signing domains share a DNS tree — not that a named person sent the mail.</p>
+            <p class="hint">If the domains match, they belong to the same organisation — not that a named person sent the mail.</p>
             <div id="identity" class="id-grid"></div>
-            <h3>Chronological mail relay chain</h3>
+            <h3>Path the mail took</h3>
             <ol id="relay" class="timeline"></ol>
           </div>
 
           <div class="tab" id="tab-explain">
             <div class="auth" id="auth"></div>
             <p class="class-line" id="classLine"></p>
-            <h3>Risk pillars</h3>
+            <h3>Where the risk came from</h3>
             <div id="pillars" class="contrib"></div>
-            <h3>Why this verdict (feature share)</h3>
+            <h3>Why this score</h3>
             <p class="hint" id="explainNote"></p>
             <div id="contrib" class="contrib"></div>
-            <h3>Header anomalies</h3>
+            <h3>Odd headers</h3>
             <ul id="anoms"></ul>
           </div>
 
           <div class="tab" id="tab-trace">
             <p class="map-cap" id="mapCap"></p>
             <div id="map"></div>
-            <h3>SMTP hop timeline</h3>
+            <h3>Path of mail computers</h3>
             <ol id="timeline" class="timeline"></ol>
             <p id="attr"></p>
           </div>
@@ -210,39 +210,39 @@
           <div class="tab" id="tab-graph">
             <p class="hint" id="graphNote"></p>
             <div id="graph" class="graph"></div>
-            <p id="graphDetail" class="hint">Click a node to inspect it.</p>
+            <p id="graphDetail" class="hint">Click a piece to see how it connects.</p>
           </div>
 
           <div class="tab" id="tab-iocs">
-            <p class="hint">Defanged for safe sharing. Copy does not visit the URL.</p>
+            <p class="hint">Clues are written safely so a click does not open the real link.</p>
             <div id="iocTable" class="ioc-table"></div>
           </div>
 
           <div class="tab" id="tab-intel">
             <p class="hint" id="intelNote"></p>
             <div class="sight-grid" id="sights"></div>
-            <h3>Incident correlation log</h3>
+            <h3>Earlier matches on this computer</h3>
             <div id="corrLog" class="corr"></div>
           </div>
 
           <div class="tab" id="tab-vault">
-            <h3>Sealed evidence (prototype CoC)</h3>
+            <h3>Saved fingerprint</h3>
             <p id="custody" class="hash"></p>
             <p id="vaultNote" class="hint"></p>
             <p id="domIntel"></p>
-            <a id="pdf" class="pdf" href="#">Download forensic PDF</a>
-            <a id="json" class="pdf ghost-link" href="#">Download JSON dossier</a>
+            <a id="pdf" class="pdf" href="#">Download report (PDF)</a>
+            <a id="json" class="pdf ghost-link" href="#">Download details (JSON)</a>
           </div>
 
           <div class="tab" id="tab-play">
-            <h3>SOC analyst guidance</h3>
+            <h3>What you should do</h3>
             <ol id="playbook" class="timeline"></ol>
             <h3>Why we scored this</h3>
             <ul id="reasons"></ul>
           </div>
 
           <details class="tech">
-            <summary>Raw technical JSON (judges)</summary>
+            <summary>Extra details for judges</summary>
             <pre id="nlp"></pre>
           </details>
         </div>
@@ -252,14 +252,14 @@
 
   <section id="view-queue" class="queue hidden">
     <div class="queue-head">
-      <h2>SOC case queue</h2>
-      <p class="hint">Every analysis on this instance. Open a row to jump into the scanner.</p>
+      <h2>Past checks</h2>
+      <p class="hint">Every email checked on this computer. Open a row to see the result.</p>
     </div>
     <div id="queueTable" class="qtable"></div>
   </section>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/static/app.js?v=14"></script>
+  <script src="/static/app.js?v=16"></script>
 </body>
 </html>

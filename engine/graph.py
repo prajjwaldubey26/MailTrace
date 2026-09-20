@@ -51,5 +51,5 @@ def build_graph(result: dict[str, Any]) -> dict[str, Any]:
         "nodes": nodes,
         "edges": edges,
         "summary": f"{len(nodes)} artefacts · {len(edges)} links · class {tclass}",
-        "note": "Infrastructure graph only — nodes are mailboxes, domains, IPs, and URLs, not a named person.",
+        "note": "These pieces are mailboxes, websites, computers, and links — not a named person.",
     }

@@ -36,6 +36,14 @@ def _phase(name: str, status: str, detail: str, started: float) -> dict[str, Any
     }
 
 
+def _plain_stamp(val: str | None) -> str:
+    if val == "fail":
+        return "failed"
+    if val == "pass":
+        return "passed"
+    return "not found"
+
+
 def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
     t_all = time.perf_counter()
     phases: list[dict[str, Any]] = []
@@ -46,9 +54,9 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
     headers = flatten_headers(msg)
     phases.append(
         _phase(
-            "1 · Ingestion & SHA-256",
+            "1 · Saved the email",
             "CLEAN",
-            f"{custody.get('algorithm')} {str(custody.get('sha256') or '')[:16]}… · {custody.get('byte_length')} bytes",
+            f"Fingerprint saved · {custody.get('byte_length')} bytes",
             t0,
         )
     )
@@ -74,9 +82,9 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
     auth_fail = any(auth.get(k) == "fail" for k in ("spf", "dkim", "dmarc"))
     phases.append(
         _phase(
-            "2 · Authentication (SPF / DKIM / DMARC)",
+            "2 · Sender stamps",
             "FLAGGED" if auth_fail else "CLEAN",
-            f"SPF {auth.get('spf')} · DKIM {auth.get('dkim')} · DMARC {auth.get('dmarc')}",
+            f"Sender check {_plain_stamp(auth.get('spf'))} · Signature {_plain_stamp(auth.get('dkim'))} · Policy {_plain_stamp(auth.get('dmarc'))}",
             t0,
         )
     )
@@ -87,9 +95,9 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
     id_status = "FLAGGED" if identity.get("mismatch_count") else "CLEAN"
     phases.append(
         _phase(
-            "3 · Sender identity",
+            "3 · Who it claims to be",
             id_status,
-            f"{identity.get('mismatch_count', 0)} org-domain mismatch(es) vs From {identity.get('from_domain') or 'n/a'}",
+            f"{identity.get('mismatch_count', 0)} mismatch vs From {identity.get('from_domain') or 'n/a'}",
             t0,
         )
     )
@@ -104,9 +112,9 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
     )
     phases.append(
         _phase(
-            "4 · Language / behavioural scan",
+            "4 · Words in the email",
             "FLAGGED" if lang_hits else "CLEAN",
-            "Weighted keyword + lookalike heuristics (not a transformer).",
+            "Looked for rushed language, fake names, and lookalike words.",
             t0,
         )
     )
@@ -115,9 +123,9 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
     anoms = header_intel.get("anomalies") or []
     phases.append(
         _phase(
-            "5 · Header & relay chain",
+            "5 · Path of mail computers",
             "FLAGGED" if any(int(a.get("points") or 0) > 0 for a in anoms) else "CLEAN",
-            f"{len(hops)} Received hop(s) · {len(anoms)} header note(s)",
+            f"{len(hops)} stop(s) on the path · {len(anoms)} header note(s)",
             t0,
         )
     )
@@ -127,7 +135,7 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
     dns_flag = bool(domain_intel.get("nxdomain") or not domain_intel.get("ok"))
     phases.append(
         _phase(
-            "6 · Domain DNS / MX",
+            "6 · Does this website exist?",
             "FLAGGED" if dns_flag else "CLEAN",
             " ".join(domain_intel.get("notes") or []) or (domain_intel.get("domain") or "no domain"),
             t0,
@@ -178,14 +186,21 @@ def analyze_raw(raw: str, source_name: str = "paste") -> dict[str, Any]:
         "byte_length": custody.get("byte_length"),
         "hashed_at": custody.get("hashed_at"),
         "note": custody.get("note"),
-        "vault": "local SQLite case store — prototype chain of custody, not a courtroom exhibit",
+        "vault": "Saved on this computer only — a prototype fingerprint, not a courtroom exhibit",
     }
     cls_flag = "FLAGGED" if tclass not in ("legitimate", "") else "CLEAN"
+    class_plain = {
+        "fraud": "payment scam",
+        "phishing": "phishing",
+        "impersonated": "fake identity",
+        "suspicious": "needs a second look",
+        "legitimate": "looks safe",
+    }.get(tclass, tclass)
     phases.append(
         _phase(
-            "7 · Score, class & attribution",
+            "7 · Final score",
             cls_flag,
-            f"{tclass} · {result.get('score')}/100 · first public hop is infrastructure, not a person",
+            f"{class_plain} · {result.get('score')}/100 · first public computer is a server, not a person",
             t0,
         )
     )

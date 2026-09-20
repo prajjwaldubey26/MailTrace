@@ -35,7 +35,7 @@ h1 { margin: 0.15rem 0; font-size: 1.7rem; letter-spacing: -0.03em; }
 .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .status.warn { background: #3a2d12; color: #ffe6b0; }
 .contrib { display: flex; flex-direction: column; gap: 0.45rem; margin: 0.4rem 0 1rem; }
-.contrib .rowbar { display: grid; grid-template-columns: 140px 1fr 48px; gap: 0.45rem; align-items: center; font-size: 0.8rem; }
+.contrib .rowbar { display: grid; grid-template-columns: minmax(140px, 1.6fr) 1fr 48px; gap: 0.45rem; align-items: center; font-size: 0.8rem; }
 .contrib .track { height: 8px; background: #1b2a40; border-radius: 99px; overflow: hidden; }
 .contrib .track i { display: block; height: 100%; background: #7aa2ff; }
 .timeline { color: var(--muted); font-size: 0.85rem; padding-left: 1.2rem; }
@@ -271,9 +271,25 @@ pre { white-space: pre-wrap; background: #0b1220; padding: 0.7rem; border-radius
 }
 .land-nav {
   display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  padding: 1.1rem 0; flex-wrap: wrap;
+  padding: 1.25rem 0 0.6rem; flex-wrap: wrap;
 }
-.land-nav strong { display: block; font-size: 1.05rem; }
+.land-brand .kicker {
+  display: block;
+  font-size: 0.9rem;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  text-shadow: 0 2px 16px #020a0a;
+}
+.land-nav strong,
+.land-brand strong {
+  display: block;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 4px 28px #020a0a, 0 0 40px rgba(62, 224, 201, 0.35);
+}
 .land-nav-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .land-main {
   display: grid; grid-template-columns: 1.15fr 0.95fr; gap: 1.5rem; align-items: center;
@@ -299,7 +315,7 @@ pre { white-space: pre-wrap; background: #0b1220; padding: 0.7rem; border-radius
 .land-seal { font-size: 0.78rem; color: var(--muted); font-family: ui-monospace, Consolas, monospace; }
 .land-mini-phases { list-style: none; padding: 0; margin: 0.6rem 0 0; display: grid; gap: 0.3rem; }
 .land-mini-phases li { display: flex; gap: 0.6rem; font-size: 0.82rem; color: var(--muted); }
-.land-mini-phases span { color: var(--ok); font-weight: 800; font-size: 0.68rem; letter-spacing: 0.06em; min-width: 72px; }
+.land-mini-phases span { color: var(--ok); font-weight: 800; font-size: 0.68rem; letter-spacing: 0.06em; min-width: 4.5rem; }
 .land-mini-phases span.bad { color: var(--bad); }
 .land-features {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; padding-bottom: 1.2rem;

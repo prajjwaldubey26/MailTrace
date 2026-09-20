@@ -48,7 +48,7 @@ SAMPLE_GUIDE = {
     "01_legitimate_college": {
         "title": "Safe college mail",
         "expect": "Should look safe",
-        "blurb": "Exam timetable from the college. Stamps should pass.",
+        "blurb": "Exam timetable from the college. Sender checks should pass.",
         "tone": "safe",
     },
     "02_phishing_invoice": {
@@ -66,7 +66,7 @@ SAMPLE_GUIDE = {
     "04_legitimate_google": {
         "title": "Safe Google alert",
         "expect": "Should look safe",
-        "blurb": "Normal Google sign-in notice. Stamps should pass.",
+        "blurb": "Normal Google sign-in notice. Sender checks should pass.",
         "tone": "safe",
     },
 }

@@ -52,48 +52,48 @@ def score_case(
     for proto, pts in (("spf", 22), ("dkim", 16), ("dmarc", 18)):
         val = auth.get(proto, "none")
         if val == "fail":
-            add(pts, f"{proto}_fail", f"{proto.upper()} authentication failed")
+            add(pts, f"{proto}_fail", f"{ {'spf': 'Sender check', 'dkim': 'Signature', 'dmarc': 'Policy'}[proto] } failed")
         elif val in ("softfail", "permerror"):
-            add(pts // 2, f"{proto}_{val}", f"{proto.upper()} is {val}")
+            add(pts // 2, f"{proto}_{val}", f"{ {'spf': 'Sender check', 'dkim': 'Signature', 'dmarc': 'Policy'}[proto] } is weak")
 
     if nlp.get("from_reply_mismatch"):
-        add(14, "reply_to_mismatch", "Reply-To domain differs from From domain")
+        add(14, "reply_to_mismatch", "The Reply-To address is not the same as From")
     if nlp.get("display_name_spoof"):
-        add(16, "display_spoof", "Trusted brand/role in display name, unmatched From domain")
+        add(16, "display_spoof", "A trusted name is shown, but the From address does not match")
     if nlp.get("urgency_cues"):
-        add(min(18, 4 * len(nlp["urgency_cues"])), "urgency", "Urgency / social-engineering language: " + ", ".join(nlp["urgency_cues"][:5]))
+        add(min(18, 4 * len(nlp["urgency_cues"])), "urgency", "Rushed language: " + ", ".join(nlp["urgency_cues"][:5]))
     if nlp.get("impersonation_cues"):
-        add(12, "impersonation", "Possible role/org impersonation: " + ", ".join(nlp["impersonation_cues"][:4]))
+        add(12, "impersonation", "Pretending to be: " + ", ".join(nlp["impersonation_cues"][:4]))
     if nlp.get("lookalike_tokens"):
-        add(20, "lookalike", "Lookalike / typosquat tokens: " + ", ".join(nlp["lookalike_tokens"]))
+        add(20, "lookalike", "Fake-looking name: " + ", ".join(nlp["lookalike_tokens"]))
     if nlp.get("url_issues"):
         add(min(20, 6 * len(nlp["url_issues"])), "url", nlp["url_issues"][0])
     if nlp.get("risky_attachments"):
-        add(22, "attachment", "Risky attachment: " + ", ".join(nlp["risky_attachments"]))
+        add(22, "attachment", "Risky file attached: " + ", ".join(nlp["risky_attachments"]))
     if nlp.get("fraud_cues"):
-        add(10, "fraud_language", "Payment / invoice / gift-card language: " + ", ".join(nlp["fraud_cues"][:4]))
+        add(10, "fraud_language", "Asks for money / invoice / gift cards: " + ", ".join(nlp["fraud_cues"][:4]))
     if nlp.get("harvest_cues"):
-        add(12, "credential_harvest", "Credential-harvest language: " + ", ".join(nlp["harvest_cues"][:3]))
+        add(12, "credential_harvest", "Asks for a password or login: " + ", ".join(nlp["harvest_cues"][:3]))
     if nlp.get("obfuscated_urls"):
-        add(8, "obfuscated_url", "Shortener or encoded URL (possible hidden redirect)")
+        add(8, "obfuscated_url", "Hidden or shortened link")
     if nlp.get("typosquat"):
-        add(16, "typosquat", "Lookalike domain (edit distance ≤ 2): " + ", ".join(nlp["typosquat"][:3]))
+        add(16, "typosquat", "Website name is a close fake: " + ", ".join(nlp["typosquat"][:3]))
     if nlp.get("quishing"):
-        add(14, "quishing", "QR / scan-code lure in body or URL (quishing-style)")
+        add(14, "quishing", "QR code or scan-to-open lure")
     if nlp.get("calm_bec"):
-        add(6, "calm_bec", "Impersonation language without urgency words (professional-tone BEC pattern)")
+        add(6, "calm_bec", "Calm request from a fake-looking boss or staff name")
 
     for a in header_intel.get("anomalies") or []:
         add(int(a.get("points") or 0), a.get("code", "header"), a.get("detail", ""))
 
     if domain_intel.get("nxdomain"):
-        add(12, "domain_dns", f"No public A/MX for From domain {domain_intel.get('domain')} (may be fake or newly parked)")
+        add(12, "domain_dns", f"The From website {domain_intel.get('domain')} does not look like a real mailbox")
 
     tags = {p.get("threat_tag") for p in hops_geo}
     if "anonymizer" in tags:
-        add(18, "tor_or_anon", "Origin/relay tagged as anonymizer (Tor/VPN-style)")
+        add(18, "tor_or_anon", "A computer on the path looks like Tor / VPN (hidden sender)")
     if "bulletproof_host" in tags or "vps" in tags:
-        add(10, "vps_origin", "Earliest hop on cheap VPS / bulletproof-style host")
+        add(10, "vps_origin", "First public computer looks like a rented server, not a normal office")
 
     score = max(0, min(100, score))
     origin_geo = next((p for p in hops_geo if p.get("role") == "origin"), hops_geo[0] if hops_geo else None)
@@ -103,29 +103,29 @@ def score_case(
     likely = "unknown"
     confidence = "low"
     if tclass == "fraud":
-        likely = "direct malicious / payment-diversion campaign"
+        likely = "fake invoice / payment scam"
         confidence = "medium"
     elif tclass == "phishing" and nlp.get("from_reply_mismatch"):
-        likely = "spoofed domain + separate mailbox (classic phishing)"
+        likely = "fake website plus a different reply mailbox"
         confidence = "medium"
     elif "anonymizer" in tags:
-        likely = "anonymized infrastructure (Tor/VPN-style)"
+        likely = "hidden path (Tor / VPN style)"
         confidence = "medium"
     elif tclass == "impersonated":
-        likely = "display-name or role impersonation (possible BEC or compromised-looking From)"
+        likely = "someone pretending to be a trusted person"
         confidence = "medium"
     elif tclass == "legitimate" or score < 25:
-        likely = "authorized mailbox provider path"
+        likely = "normal mail-provider path"
         confidence = "medium"
     elif tclass == "suspicious":
-        likely = "mixed indicators — treat as unverified infrastructure"
+        likely = "mixed signs — treat as unverified"
         confidence = "low"
 
     attribution = {
         "confidence": confidence,
         "summary": (
-            "Infrastructure attribution only — not a named person. "
-            "Earliest reliable public IP in Received is the sending node we report."
+            "We locate mail computers, not a named person. "
+            "The first public address in the path is the computer we report."
         ),
         "origin_ip": origin,
         "origin_geo": origin_geo,

@@ -59,7 +59,17 @@ def explain_case(score: int, reasons: list[dict], nlp: dict, auth: dict) -> dict
         else:
             buckets["content"] += pts
     cap = max(buckets.values()) or 1
-    pillars = [{"id": k, "label": k, "points": v, "share": round(100 * v / cap, 1)} for k, v in buckets.items()]
+    pillar_labels = {
+        "auth": "Sender stamps",
+        "sender": "Who it claims to be",
+        "url": "Links",
+        "content": "Words in the email",
+        "infra": "Mail computers",
+    }
+    pillars = [
+        {"id": k, "label": pillar_labels[k], "points": v, "share": round(100 * v / cap, 1)}
+        for k, v in buckets.items()
+    ]
 
     if score >= 85:
         severity = "critical"
@@ -72,11 +82,11 @@ def explain_case(score: int, reasons: list[dict], nlp: dict, auth: dict) -> dict
 
     return {
         "method": "weighted_feature_contributions",
-        "note": "Not SHAP / not a neural net. Each bar is that rule’s share of the risk score.",
+        "note": "Each bar is how much that warning added to the score. These are simple rules, not a chatbot.",
         "contributions": contrib[:12],
         "intents": intents,
         "hitl_review": hitl,
-        "hitl_reason": "Score sits in the 40–65 uncertainty band — a human should confirm." if hitl else "",
+        "hitl_reason": "The score is between 40 and 65 — a person should confirm before you act." if hitl else "",
         "workflow": ["detect", "explain", "trace", "investigate"],
         "auth_matrix": {"spf": auth.get("spf"), "dkim": auth.get("dkim"), "dmarc": auth.get("dmarc")},
         "pillars": pillars,
@@ -163,65 +173,67 @@ def iocs(result: dict) -> dict[str, Any]:
 def playbook(tclass: str) -> list[str]:
     common = [
         "Do not click links or open attachments from this message.",
-        "Confirm the request on a known channel (phone / in person), not Reply.",
-        "Preserve the original (.eml / Show original) — do not forward as a new mail.",
+        "Confirm the request by calling or meeting the real person — do not just hit Reply.",
+        "Keep the original email file. Do not forward it as a new mail.",
     ]
     extra = {
         "fraud": [
-            "Block payment / wire / gift-card requests until finance verifies the vendor on file.",
-            "Notify accounts payable of a possible diversion attempt.",
+            "Do not pay or change bank details until finance checks the real vendor.",
+            "Tell accounts payable this may be a fake payment request.",
         ],
         "phishing": [
-            "Warn users not to enter passwords or OTP on the linked page.",
-            "Defang IOCs before sharing in tickets.",
+            "Do not type passwords or OTP on the linked page.",
+            "Share clues as copied text, not as a live clickable link.",
         ],
         "impersonated": [
-            "Treat as BEC: executive or staff name may be fake even if the tone is calm.",
-            "Check whether the real mailbox was compromised, or this is a lookalike From.",
+            "A familiar name is not proof. Treat this as someone pretending to be staff.",
+            "Check whether the real mailbox was stolen, or this is a lookalike From address.",
         ],
-        "suspicious": ["Park the message; a human should review the 40–65 band."],
-        "legitimate": ["No strong playbook step — still avoid clicking unexpected links."],
+        "suspicious": ["Hold the message. A person should look again because the score is in the middle."],
+        "legitimate": ["No urgent action. Still skip unexpected links."],
     }
     return common + extra.get(tclass, [])
 
 
 def analyst_guidance(tclass: str, score: int, auth: dict, identity: dict, hitl: bool) -> str:
-    fails = [k.upper() for k in ("spf", "dkim", "dmarc") if auth.get(k) == "fail"]
+    names = {"spf": "sender check", "dkim": "signature", "dmarc": "policy"}
+    fails = [names[k] for k in ("spf", "dkim", "dmarc") if auth.get(k) == "fail"]
     mm = (identity or {}).get("mismatch_count") or 0
     if tclass == "legitimate" and not fails:
         return (
-            "Treat as low-priority. Authentication stamps did not fail and no strong fraud/phish/BEC class fired. "
-            "Still avoid unexpected links. This is a weighted-rule verdict, not a neural-net guarantee."
+            "Looks low risk. Sender stamps did not fail, and we did not see strong scam signs. "
+            "Still skip unexpected links. This is a rule-based result, not a chatbot guarantee."
         )
     bits = []
     if fails:
-        bits.append("Authentication failed: " + ", ".join(fails) + ".")
+        bits.append("Sender stamps failed: " + ", ".join(fails) + ".")
     if mm:
-        bits.append(f"{mm} identity-domain mismatch(es) versus From.")
+        bits.append(f"{mm} From / reply mismatch.")
     if tclass == "fraud":
-        bits.append("Do not pay or change bank details until finance confirms on a known channel.")
+        bits.append("Do not pay or change bank details until finance confirms by phone.")
     elif tclass == "phishing":
-        bits.append("Do not click links or enter passwords. Preserve the .eml.")
+        bits.append("Do not click links or type passwords. Keep the original file.")
     elif tclass == "impersonated":
-        bits.append("Trusted display name is not proof of mailbox ownership — treat as BEC.")
+        bits.append("A trusted display name is not proof — treat this as someone pretending.")
     elif tclass == "suspicious":
-        bits.append("Mixed indicators — park and verify.")
+        bits.append("Mixed signs — hold and verify.")
     if hitl:
-        bits.append("Score is in the 40–65 uncertainty band: a human analyst should confirm.")
-    bits.append(f"Recorded risk {score}/100 under explainable heuristics.")
+        bits.append("Score is between 40 and 65: a person should confirm.")
+    bits.append(f"Recorded risk {score}/100 from simple rules.")
     return " ".join(bits)
 
 
 def findings_board(reasons: list[dict], anomalies: list[dict], auth: dict) -> dict[str, Any]:
+    stamp = {"spf": "Sender check", "dkim": "Signature", "dmarc": "Policy"}
     items: list[dict] = []
     for proto in ("spf", "dkim", "dmarc"):
         val = auth.get(proto) or "none"
         if val == "fail":
-            items.append({"severity": "high", "title": f"{proto.upper()} FAIL", "detail": f"{proto.upper()} authentication failed."})
+            items.append({"severity": "high", "title": f"{stamp[proto]} failed", "detail": f"{stamp[proto]} failed."})
         elif val == "pass":
-            items.append({"severity": "info", "title": f"{proto.upper()} PASS", "detail": f"{proto.upper()} aligned with Authentication-Results."})
+            items.append({"severity": "info", "title": f"{stamp[proto]} passed", "detail": f"{stamp[proto]} passed."})
         else:
-            items.append({"severity": "warning", "title": f"{proto.upper()} {val.upper()}", "detail": f"No clear {proto.upper()} pass in Authentication-Results."})
+            items.append({"severity": "warning", "title": f"{stamp[proto]} not found", "detail": f"No clear {stamp[proto]} result."})
     for r in reasons or []:
         pts = int(r.get("points") or 0)
         if pts <= 0:
@@ -230,11 +242,11 @@ def findings_board(reasons: list[dict], anomalies: list[dict], auth: dict) -> di
         if code.startswith(("spf_", "dkim_", "dmarc_")):
             continue
         sev = "high" if pts >= 12 else "warning"
-        items.append({"severity": sev, "title": r.get("code") or "signal", "detail": r.get("detail") or "", "points": pts})
+        items.append({"severity": sev, "title": r.get("detail") or "Warning", "detail": "", "points": pts})
     for a in anomalies or []:
         pts = int(a.get("points") or 0)
         sev = "high" if pts >= 10 else "warning" if pts else "info"
-        items.append({"severity": sev, "title": a.get("code") or "header", "detail": a.get("detail") or "", "points": pts})
+        items.append({"severity": sev, "title": a.get("detail") or "Header note", "detail": "", "points": pts})
     counts = {"high": 0, "warning": 0, "info": 0}
     for i in items:
         counts[i["severity"]] = counts.get(i["severity"], 0) + 1

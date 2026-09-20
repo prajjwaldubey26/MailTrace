@@ -144,7 +144,7 @@ def correlate(from_addr: str, from_domain: str, origin_ip: str | None, exclude_i
     prior = max(len(sender_hits), len(domain_hits), len(ip_hits))
     return {
         "source": "local_sqlite_case_store",
-        "note": "Seen Before means this mailbox/domain/IP appeared in prior analyses on this MailTrace instance, not a commercial threat-intel feed.",
+        "note": "Seen before means this sender, website, or computer showed up in an earlier check on this device — not a global blacklist.",
         "sender": {"seen_before": bool(sender_hits), "count": len(sender_hits)},
         "domain": {"seen_before": bool(domain_hits), "count": len(domain_hits)},
         "origin_ip": {"seen_before": bool(ip_hits), "count": len(ip_hits), "value": origin_ip or ""},

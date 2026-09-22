@@ -22,6 +22,15 @@ def home() -> str:
     return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
 
 
+@app.get("/favicon.ico")
+def favicon() -> FileResponse:
+    return FileResponse(
+        ROOT / "static" / "favicon.ico",
+        media_type="image/x-icon",
+        headers={"Cache-Control": "no-cache"},
+    )
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {

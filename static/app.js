@@ -336,6 +336,14 @@ function renderIntel(intel) {
     : `<p class="hint">No earlier match for this sender, website, or computer on this device.</p>`;
 }
 
+function revealResult() {
+  const grid = document.querySelector(".grid");
+  if (grid) grid.classList.add("has-result");
+  if (window.matchMedia("(max-width: 980px)").matches) {
+    $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
 function render(data) {
   lastCase = data;
   $("empty").classList.add("hidden");
@@ -498,6 +506,7 @@ async function run(payload) {
     setStatus("", "");
     render(data);
     loadCases();
+    revealResult();
   } catch (e) {
     setStatus("err", "The checker is off. Keep the MailTrace window open, then try again.");
   }
@@ -513,6 +522,7 @@ async function showCase(id) {
     }
     setStatus("", "");
     render(data);
+    revealResult();
   } catch (e) {
     setStatus("err", "Could not open that check.");
   }

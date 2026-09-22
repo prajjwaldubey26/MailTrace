@@ -2,17 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#061018" />
   <title>MailTrace · check an email</title>
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png?v=2" />
+  <link rel="icon" href="/static/favicon.svg?v=2" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/static/favicon-32.png?v=2" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/style.css?v=16" />
+  <link rel="stylesheet" href="/static/style.css?v=23" />
 </head>
 <body>
-  <div class="site-bg" aria-hidden="true">
-    <video id="siteBgVideo" autoplay muted loop playsinline poster="/static/media/pin-bg.jpg">
-      <source src="/static/media/pin-bg.mp4" type="video/mp4" />
-    </video>
-  </div>
+  <div class="site-bg" aria-hidden="true"></div>
   <section id="landing" class="landing">
     <header class="land-nav">
       <div class="land-brand">
@@ -113,7 +115,7 @@
         <p class="hint">Gmail ⋮ → Show original → download the file. Outlook: save as .eml, not .msg.</p>
         <div id="drop" class="drop">
           <strong>Drop your email file here</strong>
-          <span>or click to choose · .eml / .txt</span>
+          <span>or tap to choose a file · .eml / .txt</span>
           <input id="file" type="file" accept=".eml,.txt,message/rfc822" />
         </div>
         <div id="fileChip" class="chip hidden"><span id="fileChipName"></span><button type="button" id="clearFile" class="chip-x" aria-label="Clear file">×</button></div>
@@ -260,6 +262,6 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/static/app.js?v=16"></script>
+  <script src="/static/app.js?v=23"></script>
 </body>
 </html>

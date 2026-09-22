@@ -18,8 +18,12 @@ app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
-def home() -> str:
-    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+def home() -> HTMLResponse:
+    html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    return HTMLResponse(
+        content=html,
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"},
+    )
 
 
 @app.get("/favicon.ico")
